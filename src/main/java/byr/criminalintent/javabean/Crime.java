@@ -23,7 +23,7 @@ public class Crime {
     private String mTitle;
     private Date mDate;
     private boolean mSolved;
-    private SimpleDateFormat mSimpleDateFormat;
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm", Locale.CHINA);
 
     public String getTitle() {
         return mTitle;
@@ -62,7 +62,6 @@ public class Crime {
     public Crime() {
         mId = UUID.randomUUID();
         mDate = new Date();
-
     }
 
     public Crime(JSONObject json) throws JSONException {
@@ -72,15 +71,9 @@ public class Crime {
         }
         mSolved = json.getBoolean(JSON_SOLVED);
 
-        //TODO format
-        //"yyyy年MM月dd日 E HH:mm"
-        mSimpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm", Locale.CHINA);
-
-        Log.e("before format", json.getString(JSON_DATE));
         try {
-            //TODO format bug mDate总是为空
+            //取出来的mDate.toString()格式在各系统中可能不同
             mDate = mSimpleDateFormat.parse(json.getString(JSON_DATE));
-            Log.e("after format", mDate.toString());
         } catch (ParseException e) {
             e.printStackTrace();
             mDate = new Date(json.getString(JSON_DATE));
@@ -97,8 +90,8 @@ public class Crime {
         json.put(JSON_ID, mId.toString());
         json.put(JSON_TITLE, mTitle);
         json.put(JSON_SOLVED, mSolved);
-        json.put(JSON_DATE, mDate.toString());
-
+        //文件里存的都是yyyy年MM月dd日 E HH:mm格式
+        json.put(JSON_DATE, mSimpleDateFormat.format(mDate));
         return json;
     }
 }

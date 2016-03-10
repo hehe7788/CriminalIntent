@@ -174,7 +174,7 @@ public class CrimeListFragment extends ListFragment {
             TextView titleTextView = (TextView) convertView.findViewById(R.id.crime_list_item_titleTextView);
             titleTextView.setText(c.getTitle());
             TextView dateTextView = (TextView) convertView.findViewById(R.id.crime_list_item_dateTextView);
-            SimpleDateFormat sd = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm:ss", Locale.CHINA);
+            SimpleDateFormat sd = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm", Locale.CHINA);
             dateTextView.setText(sd.format(c.getDate()));
             CheckBox solvedCheckBox = (CheckBox) convertView.findViewById(R.id.crime_list_item_solvedCheckBox);
             solvedCheckBox.setChecked(c.isSolved());
