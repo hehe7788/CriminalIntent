@@ -1,7 +1,9 @@
 package byr.criminalintent;
 
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class CrimeCameraFragment extends Fragment {
 
     private static final String TAG = "CrimeCameraFragment";
+    public static final String EXTRA_PHOTO_FILENAME = "byr.criminalintent.photo_filename";
     private Camera mCamera;
     private SurfaceView mSurfaceView;
     private View mProgressContainer;
@@ -52,8 +55,8 @@ public class CrimeCameraFragment extends Fragment {
             File sdCardDictionary = Environment.getExternalStorageDirectory();
             File sdCardFile = new File(sdCardDictionary + mExternalStoragePath + "/" + fileName);
             FileOutputStream sdOut = null;
-            //如果文件不存在，则创建目录
-            if (!sdCardFile.exists()) {
+            //如果文件目录不存在，则创建目录
+            if (!sdCardFile.getParentFile().exists()) {
                 sdCardFile.getParentFile().mkdirs();
             }
             try {
@@ -73,7 +76,12 @@ public class CrimeCameraFragment extends Fragment {
                 }
             }
             if (success) {
-                Log.e(TAG, "JPEG saved at" + fileName);
+                Log.e(TAG, "JPEG saved at " + fileName);
+                Intent i = new Intent();
+                i.putExtra(EXTRA_PHOTO_FILENAME, fileName);
+                getActivity().setResult(Activity.RESULT_OK, i);
+            } else {
+                getActivity().setResult(Activity.RESULT_CANCELED);
             }
             getActivity().finish();
         }

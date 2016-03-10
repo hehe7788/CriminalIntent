@@ -24,6 +24,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 
 import java.text.SimpleDateFormat;
@@ -34,6 +35,7 @@ import java.util.UUID;
 
 import byr.criminalintent.javabean.Crime;
 import byr.criminalintent.javabean.CrimeLab;
+import byr.criminalintent.javabean.Photo;
 
 
 /**
@@ -45,6 +47,7 @@ public class CrimeFragment extends Fragment {
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_DATE_TIME = 11;
     private static final String DIALOG_DATE_TIME = "date&time";
+    private static final int REQUEST_PHOTO = 12;
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
@@ -54,6 +57,7 @@ public class CrimeFragment extends Fragment {
 
     private UUID mCrimeId;
     private ImageButton mPhotoButton;
+    private ImageView mPhotoView;
 
 
     public static CrimeFragment newInstance(UUID crimeId) {
@@ -143,7 +147,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getActivity(), CrimeCameraActivity.class);
-                startActivity(i);
+                startActivityForResult(i, REQUEST_PHOTO);
             }
         });
         //查询是否有相机
@@ -155,6 +159,8 @@ public class CrimeFragment extends Fragment {
         if (!hasCamera) {
             mPhotoButton.setEnabled(false);
         }
+
+        mPhotoView = (ImageView) v.findViewById(R.id.crime_imageView);
         return v;
     }
 
@@ -193,7 +199,7 @@ public class CrimeFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.e("onActivityresult", "request " + requestCode + "result " + resultCode);
+        Log.e("onActivityResult", "request " + requestCode + "result " + resultCode);
         if (resultCode != Activity.RESULT_OK) {
             return;
         }
@@ -209,6 +215,14 @@ public class CrimeFragment extends Fragment {
             Date date = (Date) data.getSerializableExtra(ChoosePickerFragment.EXTRA_DATE_TIME);
             mCrime.setDate(date);
             mDateTimeButton.setText(sd.format(mCrime.getDate()));
+        }
+        if (requestCode == REQUEST_PHOTO) {
+            String fileName = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+            if (fileName != null) {
+                Photo photo = new Photo(fileName);
+                mCrime.setPhoto(photo);
+                Log.e(TAG, "Crime has a photo " + mCrime.getPhoto().getFileName());
+            }
         }
     }
 

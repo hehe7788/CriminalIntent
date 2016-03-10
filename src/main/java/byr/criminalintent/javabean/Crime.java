@@ -19,6 +19,8 @@ public class Crime {
     private static final String JSON_TITLE = "title";
     private static final String JSON_SOLVED = "solved";
     private static final String JSON_DATE = "date";
+    private static final String JSON_PHOTO = "photo";
+    private Photo mPhoto;
     private UUID mId;
     private String mTitle;
     private Date mDate;
@@ -59,6 +61,14 @@ public class Crime {
         mSolved = solved;
     }
 
+    public Photo getPhoto() {
+        return mPhoto;
+    }
+
+    public void setPhoto(Photo photo) {
+        mPhoto = photo;
+    }
+
     public Crime() {
         mId = UUID.randomUUID();
         mDate = new Date();
@@ -78,6 +88,10 @@ public class Crime {
             e.printStackTrace();
             mDate = new Date(json.getString(JSON_DATE));
         }
+
+        if (json.has(JSON_PHOTO)) {
+            mPhoto = new Photo(json.getJSONObject(JSON_PHOTO));
+        }
     }
 
     /**
@@ -92,6 +106,9 @@ public class Crime {
         json.put(JSON_SOLVED, mSolved);
         //文件里存的都是yyyy年MM月dd日 E HH:mm格式
         json.put(JSON_DATE, mSimpleDateFormat.format(mDate));
+        if (mPhoto != null) {
+            json.put(JSON_PHOTO, mPhoto.toJSON());
+        }
         return json;
     }
 }
