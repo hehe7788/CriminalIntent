@@ -77,6 +77,7 @@ public class CrimeCameraFragment extends Fragment {
             }
             if (success) {
                 Log.e(TAG, "JPEG saved at " + fileName);
+                //将文件名回传给CrimePageActivity!
                 Intent i = new Intent();
                 i.putExtra(EXTRA_PHOTO_FILENAME, fileName);
                 getActivity().setResult(Activity.RESULT_OK, i);
@@ -128,7 +129,7 @@ public class CrimeCameraFragment extends Fragment {
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                 if (mCamera != null) {
-                    //Surface大小改变时，改变camera preview大小
+                    //Surface大小改变时，改变camera preview大小，改变图片尺寸大小
                     Camera.Parameters parameters = mCamera.getParameters();
                     Camera.Size s = getBestSupportSize(parameters.getSupportedPreviewSizes(), width, height);
                     parameters.setPreviewSize(s.width, s.height);

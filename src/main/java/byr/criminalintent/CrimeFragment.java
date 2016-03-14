@@ -52,7 +52,8 @@ public class CrimeFragment extends Fragment {
     private EditText mTitleField;
     private Button mDateButton;
     private CheckBox mSolvedCheckBox;
-    private SimpleDateFormat sd;
+    //"yyyy年MM月dd日 E HH:mm"
+    private SimpleDateFormat sd = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm", Locale.CHINA);
     private Button mDateTimeButton;
 
     private UUID mCrimeId;
@@ -107,23 +108,8 @@ public class CrimeFragment extends Fragment {
 
 //        mDateButton = (Button) v.findViewById(R.id.crime_date);
         mDateTimeButton = (Button) v.findViewById(R.id.crime_date_time);
+        updateDate();
 
-        //"yyyy年MM月dd日 E HH:mm"
-        sd = new SimpleDateFormat("yyyy年MM月dd日 E HH:mm", Locale.CHINA);
-//        Log.e(TAG, sd.format(mCrime.getDate()));
-
-//        mDateButton.setText(sd.format(mCrime.getDate()));
-//        mDateButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                FragmentManager fm = getActivity().getSupportFragmentManager();
-//                DatePickerFragment dialog = DatePickerFragment.newInstance(mCrime.getDate());
-//                dialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
-//                dialog.show(fm, DIALOG_DATE);
-//            }
-//        });
-
-        mDateTimeButton.setText(sd.format(mCrime.getDate()));
         mDateTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -186,8 +172,9 @@ public class CrimeFragment extends Fragment {
                 return true;
             case R.id.menu_item_delete:
                 Log.e(TAG, "TODO delete");
-                //TODO startActivity
+                // startActivity
                 Intent i = new Intent(getActivity(), CrimeListActivity.class);
+                //在回退栈中寻找指定的activity实例，如果找到则弹出其他所有，让启动的activity在栈顶
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 i.putExtra("delete.id", mCrimeId);
                 startActivity(i);
@@ -214,8 +201,9 @@ public class CrimeFragment extends Fragment {
         if (requestCode == REQUEST_DATE_TIME) {
             Date date = (Date) data.getSerializableExtra(ChoosePickerFragment.EXTRA_DATE_TIME);
             mCrime.setDate(date);
-            mDateTimeButton.setText(sd.format(mCrime.getDate()));
+            updateDate();
         }
+        //收到了CrimeCameraFragment返回的消息
         if (requestCode == REQUEST_PHOTO) {
             String fileName = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
             if (fileName != null) {
@@ -224,6 +212,9 @@ public class CrimeFragment extends Fragment {
                 Log.e(TAG, "Crime has a photo " + mCrime.getPhoto().getFileName());
             }
         }
+    }
+    public void updateDate() {
+        mDateButton.setText(sd.format(mCrime.getDate()));
     }
 
     /**
@@ -236,6 +227,12 @@ public class CrimeFragment extends Fragment {
         super.onPause();
         //需要在onPause这里保存！
         CrimeLab.get(getActivity()).saveCrimes();
-        Log.e(TAG, "onPause save");
+        Log.e(TAG, "onPause save" + mCrime.getTitle());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume " + mCrime.getTitle());
     }
 }

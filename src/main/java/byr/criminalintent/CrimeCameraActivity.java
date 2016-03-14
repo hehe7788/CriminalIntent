@@ -13,6 +13,7 @@ public class CrimeCameraActivity extends SingleFragmentActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         //全屏，隐藏状态栏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        //以上两部必须在Activity实例创建之前完成
         super.onCreate(savedInstanceState);
     }
 
