@@ -4,8 +4,10 @@ package byr.criminalintent;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
@@ -27,6 +29,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -36,6 +39,7 @@ import java.util.UUID;
 import byr.criminalintent.javabean.Crime;
 import byr.criminalintent.javabean.CrimeLab;
 import byr.criminalintent.javabean.Photo;
+import byr.criminalintent.javabean.PictureUtils;
 
 
 /**
@@ -59,6 +63,7 @@ public class CrimeFragment extends Fragment {
     private UUID mCrimeId;
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
+    private String mExternalStoragePath = "/criminal_intent_camera";
 
 
     public static CrimeFragment newInstance(UUID crimeId) {
@@ -150,6 +155,18 @@ public class CrimeFragment extends Fragment {
         return v;
     }
 
+    private void showPhoto() {
+        //显示缩略图
+        Photo photo = mCrime.getPhoto();
+        BitmapDrawable bitmapDrawable = null;
+        if (photo != null) {
+            String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + photo.getFileName();
+
+            Log.e(TAG, "showPhoto " + path);
+            bitmapDrawable = PictureUtils.getScaledDrawable(getActivity(), path);
+        }
+        mPhotoView.setImageDrawable(bitmapDrawable);
+    }
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -209,12 +226,12 @@ public class CrimeFragment extends Fragment {
             if (fileName != null) {
                 Photo photo = new Photo(fileName);
                 mCrime.setPhoto(photo);
-                Log.e(TAG, "Crime has a photo " + mCrime.getPhoto().getFileName());
+                showPhoto();
             }
         }
     }
     public void updateDate() {
-        mDateButton.setText(sd.format(mCrime.getDate()));
+        mDateTimeButton.setText(sd.format(mCrime.getDate()));
     }
 
     /**
@@ -234,5 +251,19 @@ public class CrimeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.e(TAG, "onResume " + mCrime.getTitle());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        //加载缩略图
+        showPhoto();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        //卸载缩略图
+        PictureUtils.cleanImageView(mPhotoView);
     }
 }
