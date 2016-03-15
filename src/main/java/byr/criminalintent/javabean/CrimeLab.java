@@ -59,6 +59,7 @@ public class CrimeLab {
 
     public void deleteCrime(Crime c) {
         mCrimes.remove(c);
+        //// TODO: 2016/3/14 删除存储的照片
     }
     /**
      * 数据的保存

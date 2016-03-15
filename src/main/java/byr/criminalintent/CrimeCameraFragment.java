@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -15,6 +17,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,24 +35,34 @@ public class CrimeCameraFragment extends Fragment {
 
     private static final String TAG = "CrimeCameraFragment";
     public static final String EXTRA_PHOTO_FILENAME = "byr.criminalintent.photo_filename";
+    private static final String EXTRA_PHOTO_ORIENTATION = "byr.criminalintent.photo_orientation";
     private Camera mCamera;
     private SurfaceView mSurfaceView;
     private View mProgressContainer;
     private String mExternalStoragePath = "/criminal_intent_camera";
-
+    private SensorManager sm;
     private Camera.ShutterCallback mShutterCallback = new Camera.ShutterCallback() {
         @Override
         public void onShutter() {
             //显示progressbar
             mProgressContainer.setVisibility(View.VISIBLE);
+            // todo 获取设备方向
+
+            sm = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+            //sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR,true);
         }
     };
-
     private Camera.PictureCallback mJpegCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
+            int cameraId = getDefaultCameraId();
             String fileName = UUID.randomUUID().toString() + ".jpg";
-            FileOutputStream out = null;
+            //图片方向
+            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(cameraId, cameraInfo);
+            int orientation = cameraInfo.orientation;
+            Log.e(TAG, "orientation " + orientation);
+
             boolean success = true;
             //外部存储 获取外部存储设备（SD卡）的路径
             File sdCardDictionary = Environment.getExternalStorageDirectory();
@@ -80,6 +93,7 @@ public class CrimeCameraFragment extends Fragment {
                 //将文件名回传给CrimePageActivity!
                 Intent i = new Intent();
                 i.putExtra(EXTRA_PHOTO_FILENAME, fileName);
+                i.putExtra(EXTRA_PHOTO_ORIENTATION, orientation);
                 getActivity().setResult(Activity.RESULT_OK, i);
             } else {
                 getActivity().setResult(Activity.RESULT_CANCELED);
@@ -87,6 +101,36 @@ public class CrimeCameraFragment extends Fragment {
             getActivity().finish();
         }
     };
+    private int mNumberOfCameras;
+
+    private int getDefaultCameraId()
+    {
+        int defaultId = -1;
+
+        // Find the total number of cameras available
+        mNumberOfCameras = Camera.getNumberOfCameras();
+
+        // Find the ID of the default camera
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        for (int i = 0; i < mNumberOfCameras; i++) {
+            Camera.getCameraInfo(i, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                defaultId = i;
+            }
+        }
+        if (-1 == defaultId) {
+            if (mNumberOfCameras > 0) {
+                // 如果没有后向摄像头
+                defaultId = 0;
+            }
+            else {
+                // 没有摄像头
+                Toast.makeText(getContext(), R.string.no_camera,
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+        return defaultId;
+    }
 
     public CrimeCameraFragment() {
         // Required empty public constructor
@@ -187,6 +231,7 @@ public class CrimeCameraFragment extends Fragment {
         if (mCamera != null) {
             mCamera.release();
             mCamera = null;
+            //停止sensor
         }
     }
 }

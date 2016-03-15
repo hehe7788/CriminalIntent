@@ -20,5 +20,6 @@
     <string name="delete_crime">Delete</string>
     <string name="empty_view">No crime record</string>
     <string name="take">Take!</string>
+    <string name="no_camera">没有相机</string>
 
 </resources>

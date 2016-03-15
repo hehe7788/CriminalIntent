@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,6 +31,7 @@ import android.widget.ImageView;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -52,6 +54,7 @@ public class CrimeFragment extends Fragment {
     private static final int REQUEST_DATE_TIME = 11;
     private static final String DIALOG_DATE_TIME = "date&time";
     private static final int REQUEST_PHOTO = 12;
+    private static final String DIALOG_IMAGE = "image";
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
@@ -152,6 +155,29 @@ public class CrimeFragment extends Fragment {
         }
 
         mPhotoView = (ImageView) v.findViewById(R.id.crime_imageView);
+        mPhotoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Photo p = mCrime.getPhoto();
+                if (p == null) {
+                    return;
+                }
+
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + p.getFileName();
+                ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
+
+                //todo 尝试获取图片ExifInterface信息
+                try {
+                    ExifInterface exifInterface = new ExifInterface(path);
+                    String orientation = exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
+                    String time = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+                    Log.e(TAG, orientation + "   " +time);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         return v;
     }
 

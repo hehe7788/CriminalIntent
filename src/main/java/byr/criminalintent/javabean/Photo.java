@@ -9,10 +9,17 @@ import org.json.JSONObject;
 public class Photo {
 
     private static final String JSON_FILENAME = "filename";
+    private int mOrientation;
     private String mFileName;
 
     public Photo(String fileName) {
         mFileName = fileName;
+    }
+
+    //拍摄时记录方向
+    public Photo(String fileName, int orientation) {
+        mFileName = fileName;
+        mOrientation = orientation;
     }
 
     public Photo(JSONObject json) throws JSONException {
