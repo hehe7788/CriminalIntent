@@ -4,14 +4,17 @@ package byr.criminalintent;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -20,11 +23,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,6 +36,11 @@ public class CrimeCameraFragment extends Fragment {
     private static final String TAG = "CrimeCameraFragment";
     public static final String EXTRA_PHOTO_FILENAME = "byr.criminalintent.photo_filename";
     private static final String EXTRA_PHOTO_ORIENTATION = "byr.criminalintent.photo_orientation";
+
+
+    OrientationEventListener mScreenOrientationEventListener;
+    private int degrees;
+
     private Camera mCamera;
     private SurfaceView mSurfaceView;
     private View mProgressContainer;
@@ -60,9 +65,15 @@ public class CrimeCameraFragment extends Fragment {
             //图片方向
             Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, cameraInfo);
+            //强制获取屏幕方向
             int orientation = cameraInfo.orientation;
             Log.e(TAG, "orientation " + orientation);
-
+            Log.e(TAG, "degrees " + degrees);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+            Matrix matrix = new Matrix();
+            matrix.preRotate(degrees);
+            bitmap = Bitmap.createBitmap(bitmap ,0,0, bitmap .getWidth(), bitmap
+                    .getHeight(),matrix,true);
             boolean success = true;
             //外部存储 获取外部存储设备（SD卡）的路径
             File sdCardDictionary = Environment.getExternalStorageDirectory();
@@ -74,7 +85,8 @@ public class CrimeCameraFragment extends Fragment {
             }
             try {
                 sdOut = new FileOutputStream(sdCardFile);
-                sdOut.write(data);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, sdOut);
+//                sdOut.write(data);
             } catch (Exception e) {
                 Log.e(TAG, "Error writing to file" + fileName, e);
                 success = false;
@@ -103,8 +115,7 @@ public class CrimeCameraFragment extends Fragment {
     };
     private int mNumberOfCameras;
 
-    private int getDefaultCameraId()
-    {
+    private int getDefaultCameraId() {
         int defaultId = -1;
 
         // Find the total number of cameras available
@@ -141,6 +152,34 @@ public class CrimeCameraFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime_camera, container, false);
+
+
+        // TODO: 2016/3/15 0015 只能检测手机竖直时的情况，手机平放时无法判断
+        mScreenOrientationEventListener = new OrientationEventListener(this.getActivity()) {
+
+            @Override
+            public void onOrientationChanged(int orientation) {
+                // orientation的范围是0～359
+                // 屏幕左边在顶部的时候 orientation = 90;
+                // 屏幕顶部在底部的时候 orientation = 180;
+                // 屏幕右边在底部的时候 orientation = 270;
+                // 正常情况默认orientation = 0;
+                if(orientation >= 350 || orientation <= 10) {
+                    //竖直OK
+                    degrees = 90;
+                } else if(orientation >= 80 && orientation <= 100) {
+                    //右旋OK
+                    degrees = 180;
+                } else if(orientation >= 170 && orientation <= 190) {
+                    //倒转OK
+                    degrees = 270;
+                } else if(orientation >= 260 && orientation <= 280){
+                    //左旋OK
+                    degrees = 0;
+                }
+            }
+        };
+        mScreenOrientationEventListener.enable();
 
         mProgressContainer = v.findViewById(R.id.crime_camera_progressContainer);
         mProgressContainer.setVisibility(View.INVISIBLE);
