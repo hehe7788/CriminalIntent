@@ -4,9 +4,6 @@ package byr.criminalintent;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.os.Bundle;
@@ -35,7 +32,7 @@ public class CrimeCameraFragment extends Fragment {
 
     private static final String TAG = "CrimeCameraFragment";
     public static final String EXTRA_PHOTO_FILENAME = "byr.criminalintent.photo_filename";
-    private static final String EXTRA_PHOTO_ORIENTATION = "byr.criminalintent.photo_orientation";
+    public static final String EXTRA_PHOTO_ORIENTATION = "byr.criminalintent.photo_orientation";
 
 
     OrientationEventListener mScreenOrientationEventListener;
@@ -60,20 +57,14 @@ public class CrimeCameraFragment extends Fragment {
     private Camera.PictureCallback mJpegCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            int cameraId = getDefaultCameraId();
+//            int cameraId = getDefaultCameraId();
             String fileName = UUID.randomUUID().toString() + ".jpg";
-            //图片方向
-            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-            Camera.getCameraInfo(cameraId, cameraInfo);
-            //强制获取屏幕方向
-            int orientation = cameraInfo.orientation;
-            Log.e(TAG, "orientation " + orientation);
-            Log.e(TAG, "degrees " + degrees);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-            Matrix matrix = new Matrix();
-            matrix.preRotate(degrees);
-            bitmap = Bitmap.createBitmap(bitmap ,0,0, bitmap .getWidth(), bitmap
-                    .getHeight(),matrix,true);
+
+//            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+//            Matrix matrix = new Matrix();
+//            matrix.preRotate(degrees);
+//            bitmap = Bitmap.createBitmap(bitmap ,0,0, bitmap .getWidth(), bitmap
+//                    .getHeight(),matrix,true);
             boolean success = true;
             //外部存储 获取外部存储设备（SD卡）的路径
             File sdCardDictionary = Environment.getExternalStorageDirectory();
@@ -85,8 +76,8 @@ public class CrimeCameraFragment extends Fragment {
             }
             try {
                 sdOut = new FileOutputStream(sdCardFile);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, sdOut);
-//                sdOut.write(data);
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, sdOut);
+                sdOut.write(data);
             } catch (Exception e) {
                 Log.e(TAG, "Error writing to file" + fileName, e);
                 success = false;
@@ -105,7 +96,7 @@ public class CrimeCameraFragment extends Fragment {
                 //将文件名回传给CrimePageActivity!
                 Intent i = new Intent();
                 i.putExtra(EXTRA_PHOTO_FILENAME, fileName);
-                i.putExtra(EXTRA_PHOTO_ORIENTATION, orientation);
+                i.putExtra(EXTRA_PHOTO_ORIENTATION, degrees);
                 getActivity().setResult(Activity.RESULT_OK, i);
             } else {
                 getActivity().setResult(Activity.RESULT_CANCELED);

@@ -1,16 +1,15 @@
 package byr.criminalintent;
 
 
+import android.app.Fragment;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import byr.criminalintent.javabean.PictureUtils;
 
@@ -27,10 +26,10 @@ public class ImageFragment extends DialogFragment {
         // Required empty public constructor
     }
 
-    public static ImageFragment newInstance(String imagePath) {
+    public static ImageFragment newInstance(String imagePath, int orientation) {
         Bundle args = new Bundle();
         args.putSerializable(EXTRA_IMAGE_PATH, imagePath);
-
+        args.putInt(CrimeCameraFragment.EXTRA_PHOTO_ORIENTATION, orientation);
         ImageFragment fragment = new ImageFragment();
         fragment.setArguments(args);
         fragment.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
@@ -44,6 +43,7 @@ public class ImageFragment extends DialogFragment {
         String path = (String) getArguments().getSerializable(EXTRA_IMAGE_PATH);
         BitmapDrawable image = PictureUtils.getScaledDrawable(getActivity(), path);
         mImageView.setImageDrawable(image);
+        mImageView.setRotation(getArguments().getInt(CrimeCameraFragment.EXTRA_PHOTO_ORIENTATION));
         mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

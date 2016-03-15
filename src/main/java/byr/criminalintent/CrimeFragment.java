@@ -29,14 +29,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
-
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
-
 
 import byr.criminalintent.javabean.Crime;
 import byr.criminalintent.javabean.CrimeLab;
@@ -165,7 +162,8 @@ public class CrimeFragment extends Fragment {
 
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + p.getFileName();
-                ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
+                int ori = p.getOrientation();
+                ImageFragment.newInstance(path, ori).show(fm, DIALOG_IMAGE);
 
                 //todo 尝试获取图片ExifInterface信息
                 try {
@@ -185,13 +183,17 @@ public class CrimeFragment extends Fragment {
         //显示缩略图
         Photo photo = mCrime.getPhoto();
         BitmapDrawable bitmapDrawable = null;
+        int ori = 0;
         if (photo != null) {
             String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + photo.getFileName();
-
+            ori = photo.getOrientation();
             Log.e(TAG, "showPhoto " + path);
+            Log.e(TAG, "orientation = " + ori);
             bitmapDrawable = PictureUtils.getScaledDrawable(getActivity(), path);
         }
+
         mPhotoView.setImageDrawable(bitmapDrawable);
+        mPhotoView.setRotation(ori);
     }
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -249,8 +251,9 @@ public class CrimeFragment extends Fragment {
         //收到了CrimeCameraFragment返回的消息
         if (requestCode == REQUEST_PHOTO) {
             String fileName = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+            int orientation = data.getIntExtra(CrimeCameraFragment.EXTRA_PHOTO_ORIENTATION, 0);
             if (fileName != null) {
-                Photo photo = new Photo(fileName);
+                Photo photo = new Photo(fileName, orientation);
                 mCrime.setPhoto(photo);
                 showPhoto();
             }
