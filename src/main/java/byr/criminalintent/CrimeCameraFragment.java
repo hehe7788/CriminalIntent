@@ -5,13 +5,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -20,11 +20,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,33 +32,25 @@ public class CrimeCameraFragment extends Fragment {
 
     private static final String TAG = "CrimeCameraFragment";
     public static final String EXTRA_PHOTO_FILENAME = "byr.criminalintent.photo_filename";
-    private static final String EXTRA_PHOTO_ORIENTATION = "byr.criminalintent.photo_orientation";
+    public static final String EXTRA_PHOTO_DEGREE = "byr.criminalintent.photo_degree";
     private Camera mCamera;
     private SurfaceView mSurfaceView;
     private View mProgressContainer;
     private String mExternalStoragePath = "/criminal_intent_camera";
     private SensorManager sm;
+    private OrientationEventListener mOrientationEventListener;
+    private int degree;
     private Camera.ShutterCallback mShutterCallback = new Camera.ShutterCallback() {
         @Override
         public void onShutter() {
             //显示progressbar
             mProgressContainer.setVisibility(View.VISIBLE);
-            // todo 获取设备方向
-
-            sm = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
-            //sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR,true);
         }
     };
     private Camera.PictureCallback mJpegCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            int cameraId = getDefaultCameraId();
             String fileName = UUID.randomUUID().toString() + ".jpg";
-            //图片方向
-            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-            Camera.getCameraInfo(cameraId, cameraInfo);
-            int orientation = cameraInfo.orientation;
-            Log.e(TAG, "orientation " + orientation);
 
             boolean success = true;
             //外部存储 获取外部存储设备（SD卡）的路径
@@ -93,7 +82,7 @@ public class CrimeCameraFragment extends Fragment {
                 //将文件名回传给CrimePageActivity!
                 Intent i = new Intent();
                 i.putExtra(EXTRA_PHOTO_FILENAME, fileName);
-                i.putExtra(EXTRA_PHOTO_ORIENTATION, orientation);
+                i.putExtra(EXTRA_PHOTO_DEGREE, degree);
                 getActivity().setResult(Activity.RESULT_OK, i);
             } else {
                 getActivity().setResult(Activity.RESULT_CANCELED);
@@ -101,36 +90,6 @@ public class CrimeCameraFragment extends Fragment {
             getActivity().finish();
         }
     };
-    private int mNumberOfCameras;
-
-    private int getDefaultCameraId()
-    {
-        int defaultId = -1;
-
-        // Find the total number of cameras available
-        mNumberOfCameras = Camera.getNumberOfCameras();
-
-        // Find the ID of the default camera
-        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-        for (int i = 0; i < mNumberOfCameras; i++) {
-            Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                defaultId = i;
-            }
-        }
-        if (-1 == defaultId) {
-            if (mNumberOfCameras > 0) {
-                // 如果没有后向摄像头
-                defaultId = 0;
-            }
-            else {
-                // 没有摄像头
-                Toast.makeText(getContext(), R.string.no_camera,
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-        return defaultId;
-    }
 
     public CrimeCameraFragment() {
         // Required empty public constructor
@@ -198,6 +157,31 @@ public class CrimeCameraFragment extends Fragment {
                 }
             }
         });
+
+        mOrientationEventListener = new OrientationEventListener(getContext()) {
+            @Override
+            public void onOrientationChanged(int orientation) {
+                // orientation的范围是0～359
+                // 右旋，屏幕左边在顶部的时候 orientation = 90;
+                // 倒置，屏幕顶部在底部的时候 orientation = 180;
+                // 左旋，屏幕右边在顶部的时候 orientation = 270;
+                // 竖直，正常情况默认orientation = 0;
+                if(orientation >= 350 || orientation <= 10) {
+                    //竖直OK
+                    degree = 90;
+                } else if(orientation >= 80 && orientation <= 100) {
+                    //右旋OK
+                    degree = 180;
+                } else if(orientation >= 170 && orientation <= 190) {
+                    //倒转OK
+                    degree = 270;
+                } else if(orientation >= 260 && orientation <= 280){
+                    //左旋OK
+                    degree = 0;
+                }
+            }
+        };
+        mOrientationEventListener.enable();
         return v;
     }
 
@@ -233,5 +217,6 @@ public class CrimeCameraFragment extends Fragment {
             mCamera = null;
             //停止sensor
         }
+        mOrientationEventListener.disable();
     }
 }

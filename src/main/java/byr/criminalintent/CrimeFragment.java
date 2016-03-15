@@ -165,17 +165,8 @@ public class CrimeFragment extends Fragment {
 
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + p.getFileName();
-                ImageFragment.newInstance(path).show(fm, DIALOG_IMAGE);
-
-                //todo 尝试获取图片ExifInterface信息
-                try {
-                    ExifInterface exifInterface = new ExifInterface(path);
-                    String orientation = exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
-                    String time = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-                    Log.e(TAG, orientation + "   " +time);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                int degree = p.getDegree();
+                ImageFragment.newInstance(path, degree).show(fm, DIALOG_IMAGE);
             }
         });
         return v;
@@ -184,14 +175,17 @@ public class CrimeFragment extends Fragment {
     private void showPhoto() {
         //显示缩略图
         Photo photo = mCrime.getPhoto();
+        int degree = 0;
         BitmapDrawable bitmapDrawable = null;
         if (photo != null) {
             String path = Environment.getExternalStorageDirectory() +  mExternalStoragePath + "/" + photo.getFileName();
+            degree = photo.getDegree();
 
             Log.e(TAG, "showPhoto " + path);
             bitmapDrawable = PictureUtils.getScaledDrawable(getActivity(), path);
         }
         mPhotoView.setImageDrawable(bitmapDrawable);
+        mPhotoView.setRotation(degree);
     }
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -214,7 +208,7 @@ public class CrimeFragment extends Fragment {
                 }
                 return true;
             case R.id.menu_item_delete:
-                Log.e(TAG, "TODO delete");
+                Log.e(TAG, "delete");
                 // startActivity
                 Intent i = new Intent(getActivity(), CrimeListActivity.class);
                 //在回退栈中寻找指定的activity实例，如果找到则弹出其他所有，让启动的activity在栈顶
@@ -249,9 +243,12 @@ public class CrimeFragment extends Fragment {
         //收到了CrimeCameraFragment返回的消息
         if (requestCode == REQUEST_PHOTO) {
             String fileName = data.getStringExtra(CrimeCameraFragment.EXTRA_PHOTO_FILENAME);
+            int degree = data.getIntExtra(CrimeCameraFragment.EXTRA_PHOTO_DEGREE, 0);
             if (fileName != null) {
-                Photo photo = new Photo(fileName);
+                Photo photo = new Photo(fileName, degree);
+                Log.e(TAG, "NEW photo: " + degree + "  "+ fileName);
                 mCrime.setPhoto(photo);
+                Log.e(TAG, "get degree" + mCrime.getPhoto().getDegree());
                 showPhoto();
             }
         }
@@ -290,6 +287,8 @@ public class CrimeFragment extends Fragment {
     public void onStop() {
         super.onStop();
         //卸载缩略图
-        PictureUtils.cleanImageView(mPhotoView);
+        if (mCrime.getPhoto() != null) {
+            PictureUtils.cleanImageView(mPhotoView);
+        }
     }
 }
