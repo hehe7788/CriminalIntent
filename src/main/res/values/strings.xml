@@ -21,5 +21,7 @@
     <string name="empty_view">No crime record</string>
     <string name="take">Take!</string>
     <string name="no_camera">没有相机</string>
+    <string name="crime_suspect_text">Choose Suspect</string>
+    <string name="crime_report_test">Send Crime Report</string>
 
 </resources>
