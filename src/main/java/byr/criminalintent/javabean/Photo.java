@@ -9,8 +9,8 @@ import org.json.JSONObject;
 public class Photo {
 
     private static final String JSON_FILENAME = "filename";
-
-    private int mOrientation;
+    private static final String JSON_DEGREE = "degree";
+    private int mDegree;
     private String mFileName;
 
     public Photo(String fileName) {
@@ -18,18 +18,20 @@ public class Photo {
     }
 
     //拍摄时记录方向
-    public Photo(String fileName, int orientation) {
+    public Photo(String fileName, int degree) {
         mFileName = fileName;
-        mOrientation = orientation;
+        mDegree = degree;
     }
 
     public Photo(JSONObject json) throws JSONException {
         mFileName = json.getString(JSON_FILENAME);
+        mDegree = json.getInt(JSON_DEGREE);
     }
 
     public JSONObject toJSON() throws JSONException {
         JSONObject json = new JSONObject();
         json.put(JSON_FILENAME, mFileName);
+        json.put(JSON_DEGREE, mDegree);
         return json;
     }
 
@@ -37,11 +39,11 @@ public class Photo {
         return mFileName;
     }
 
-    public int getOrientation() {
-        return mOrientation;
+    public int getDegree() {
+        return mDegree;
     }
 
-    public void setOrientation(int orientation) {
-        mOrientation = orientation;
+    public void setDegree(int degree) {
+        mDegree = degree;
     }
 }
